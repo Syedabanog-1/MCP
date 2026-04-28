@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Model Context Protocol — Technical Document</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --primary: #5b21b6;
+    --secondary: #0891b2;
+    --accent: #d97706;
+    --text: #1e293b;
+    --text-muted: #64748b;
+    --bg: #ffffff;
+    --bg-alt: #f8fafc;
+    --border: #e2e8f0;
+    --purple-light: #ede9fe;
+    --teal-light: #cffafe;
+    --amber-light: #fef3c7;
+    --green-light: #dcfce7;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  /* ── PRINT ── */
+  @media print {
+    .no-print { display:none; }
+    body { font-size: 12px; }
+    .page-break { page-break-before: always; }
+    .cover { page-break-after: always; }
+  }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 900px; margin: 0 auto; padding: 40px 60px; }
+
+  /* ── COVER PAGE ── */
+  .cover {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    color: #fff;
+    padding: 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(124,58,237,.3) 0%, transparent 70%);
+    top: -100px; right: -100px;
+  }
+  .cover::after {
+    content: '';
+    position: absolute;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(6,182,212,.2) 0%, transparent 70%);
+    bottom: -50px; left: -50px;
+  }
+  .cover-inner { position: relative; z-index: 1; }
+  .cover-tag {
+    display: inline-block;
+    background: rgba(124,58,237,.3);
+    border: 1px solid rgba(124,58,237,.5);
+    color: #c4b5fd;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 5px 16px;
+    border-radius: 20px;
+    margin-bottom: 28px;
+  }
+  .cover h1 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 24px;
+    background: linear-gradient(135deg, #a78bfa, #67e8f9);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .cover-subtitle { font-size: 1.1rem; color: rgba(255,255,255,.7); max-width: 560px; line-height: 1.8; margin-bottom: 48px; }
+  .cover-meta { display: flex; gap: 32px; flex-wrap: wrap; }
+  .cover-meta-item { }
+  .cover-meta-item .label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,.4); margin-bottom: 4px; }
+  .cover-meta-item .val   { font-size: 14px; color: rgba(255,255,255,.85); font-weight: 600; }
+  .cover-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(52,211,153,.15); border: 1px solid rgba(52,211,153,.3);
+    border-radius: 20px; padding: 4px 12px; font-size: 11px; color: #6ee7b7; font-weight: 600;
+    margin-top: 36px; margin-right: 10px;
+  }
+  .cover-badge::before { content: '●'; font-size: 8px; }
+
+  /* ── TOC ── */
+  .toc { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 12px; padding: 32px 36px; margin: 40px 0; }
+  .toc h2 { color: var(--primary); font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; }
+  .toc-list { list-style: none; display: flex; flex-direction: column; gap: 0; }
+  .toc-list li { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px dotted var(--border); }
+  .toc-list li:last-child { border-bottom: none; }
+  .toc-list .toc-num { color: var(--primary); font-weight: 700; font-size: 12px; min-width: 30px; }
+  .toc-list .toc-title { flex: 1; font-size: 13px; color: var(--text); }
+  .toc-list .toc-sub { font-size: 11px; color: var(--text-muted); }
+  .toc-section { margin-top: 12px; font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+
+  /* ── SECTIONS ── */
+  .section { margin: 48px 0; }
+  .section-header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 24px; padding-bottom: 14px;
+    border-bottom: 2px solid var(--border);
+  }
+  .section-num {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--primary), #7c3aed);
+    color: #fff; font-weight: 800; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .section h2 { font-size: 1.4rem; font-weight: 700; color: var(--text); }
+  .section h3 { font-size: 1rem; font-weight: 600; color: var(--primary); margin: 20px 0 8px; }
+  .section h4 { font-size: 0.9rem; font-weight: 600; color: var(--secondary); margin: 14px 0 6px; }
+  p { margin-bottom: 12px; }
+
+  /* ── CALLOUT BOXES ── */
+  .callout {
+    border-radius: 10px; padding: 16px 20px; margin: 16px 0;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .callout-icon { font-size: 20px; flex-shrink: 0; }
+  .callout.purple { background: var(--purple-light); border-left: 4px solid var(--primary); }
+  .callout.teal   { background: var(--teal-light);   border-left: 4px solid var(--secondary); }
+  .callout.amber  { background: var(--amber-light);  border-left: 4px solid var(--accent); }
+  .callout.green  { background: var(--green-light);  border-left: 4px solid #16a34a; }
+  .callout strong { color: var(--text); }
+
+  /* ── CODE ── */
+  .code-block {
+    background: #1e1e2e;
+    border-radius: 10px;
+    padding: 18px 22px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.8;
+    margin: 14px 0;
+    overflow-x: auto;
+    color: #cdd6f4;
+    position: relative;
+  }
+  .code-block .lang { position: absolute; top: 8px; right: 12px; font-size: 10px; color: #6c7086; background: #313244; padding: 2px 8px; border-radius: 6px; }
+  .kw  { color: #cba6f7; }
+  .str { color: #a6e3a1; }
+  .num { color: #fab387; }
+  .cmt { color: #6c7086; font-style: italic; }
+  .fn  { color: #89dceb; }
+
+  /* ── TABLE ── */
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+  th { background: var(--purple-light); padding: 10px 14px; text-align: left; font-weight: 700; font-size: 12px; color: var(--primary); border-bottom: 2px solid #c4b5fd; }
+  td { padding: 9px 14px; border-bottom: 1px solid var(--border); }
+  tr:hover td { background: #fafafa; }
+  .check { color: #16a34a; font-weight: 700; }
+  .cross { color: #dc2626; font-weight: 700; }
+
+  /* ── DIAGRAM SVG ── */
+  .diagram { margin: 20px 0; display: flex; justify-content: center; }
+  .diagram svg { max-width: 100%; }
+
+  /* ── GRID ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin: 16px 0; }
+
+  /* ── DEFINITION CARDS ── */
+  .def-card {
+    border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px;
+    border-top: 3px solid var(--primary);
+  }
+  .def-card.teal   { border-top-color: var(--secondary); }
+  .def-card.amber  { border-top-color: var(--accent); }
+  .def-card.green  { border-top-color: #16a34a; }
+  .def-card h4 { font-size: 13px; font-weight: 700; margin: 0 0 6px; }
+  .def-card p { font-size: 12px; color: var(--text-muted); margin: 0; }
+
+  /* ── PILL ── */
+  .pill { display: inline-block; background: var(--purple-light); border: 1px solid #c4b5fd; border-radius: 20px; padding: 3px 12px; font-size: 11px; color: var(--primary); margin: 3px; }
+  .pill.teal  { background: var(--teal-light); border-color: #a5f3fc; color: var(--secondary); }
+  .pill.amber { background: var(--amber-light); border-color: #fde68a; color: var(--accent); }
+  .pill.green { background: var(--green-light); border-color: #86efac; color: #15803d; }
+
+  /* ── HORIZONTAL RULE ── */
+  hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+  /* ── PRINT BUTTON ── */
+  .print-btn {
+    position: fixed; bottom: 30px; right: 30px;
+    background: var(--primary); color: #fff; border: none; border-radius: 50px;
+    padding: 12px 28px; font-size: 14px; font-weight: 600; cursor: pointer;
+    box-shadow: 0 4px 20px rgba(91,33,182,.4);
+    transition: all .2s;
+  }
+  .print-btn:hover { background: #4c1d95; transform: translateY(-2px); }
+
+  /* ── BLOCKQUOTE ── */
+  blockquote {
+    border-left: 4px solid var(--primary); padding: 14px 20px;
+    background: var(--purple-light); border-radius: 0 8px 8px 0;
+    font-style: italic; color: var(--text-muted); margin: 16px 0;
+    font-size: 14px;
+  }
+
+  /* ── LIST ── */
+  ul, ol { padding-left: 20px; margin-bottom: 12px; }
+  li { margin-bottom: 5px; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════
+     COVER PAGE
+════════════════════════════════ -->
+<div class="cover">
+  <div class="cover-inner">
+    <div class="cover-tag">Technical Overview Document</div>
+    <h1>Model Context<br>Protocol (MCP)</h1>
+    <p class="cover-subtitle">
+      A comprehensive technical overview of the open protocol that standardizes
+      how AI models connect to tools, data sources, and services — enabling
+      interoperable, agentic AI applications at scale.
+    </p>
+    <div class="cover-meta">
+      <div class="cover-meta-item">
+        <div class="label">Prepared by</div>
+        <div class="val">Syeda Gulzar Bano</div>
+      </div>
+      <div class="cover-meta-item">
+        <div class="label">Protocol Version</div>
+        <div class="val">MCP 1.0 (2024)</div>
+      </div>
+      <div class="cover-meta-item">
+        <div class="label">Date</div>
+        <div class="val">April 2026</div>
+      </div>
+    </div>
+    <div style="margin-top:28px;">
+      <span class="cover-badge">Open Standard</span>
+      <span class="cover-badge">JSON-RPC 2.0</span>
+      <span class="cover-badge">Language Agnostic</span>
+      <span class="cover-badge">MIT License</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     MAIN DOCUMENT
+════════════════════════════════ -->
+<div class="container">
+
+  <!-- TABLE OF CONTENTS -->
+  <div class="toc">
+    <h2>Table of Contents</h2>
+    <ul class="toc-list">
+      <li><span class="toc-num">1</span><span class="toc-title">Introduction &amp; Problem Statement</span><span class="toc-sub">The M×N Challenge</span></li>
+      <li><span class="toc-num">2</span><span class="toc-title">What is MCP?</span><span class="toc-sub">Definition, Origin, USB-C Analogy</span></li>
+      <li><span class="toc-num">3</span><span class="toc-title">Architecture Overview</span><span class="toc-sub">Three-Layer Model</span></li>
+      <li><span class="toc-num">4</span><span class="toc-title">Core Components</span><span class="toc-sub">Host · Client · Server</span></li>
+      <li><span class="toc-num">5</span><span class="toc-title">Core Primitives</span><span class="toc-sub">Tools · Resources · Prompts · Sampling · Roots</span></li>
+      <li><span class="toc-num">6</span><span class="toc-title">Transport Layer</span><span class="toc-sub">stdio · HTTP+SSE · WebSocket · JSON-RPC 2.0</span></li>
+      <li><span class="toc-num">7</span><span class="toc-title">Connection Lifecycle</span><span class="toc-sub">Initialize · Discover · Operate · Shutdown</span></li>
+      <li><span class="toc-num">8</span><span class="toc-title">Notifications &amp; Progress</span><span class="toc-sub">Async Messaging System</span></li>
+      <li><span class="toc-num">9</span><span class="toc-title">Multi-Server Architecture</span><span class="toc-sub">Parallel Connections</span></li>
+      <li><span class="toc-num">10</span><span class="toc-title">Agentic Loops</span><span class="toc-sub">Plan · Act · Observe · Reflect</span></li>
+      <li><span class="toc-num">11</span><span class="toc-title">Error Handling &amp; Cancellation</span><span class="toc-sub">JSON-RPC Error Codes</span></li>
+      <li><span class="toc-num">12</span><span class="toc-title">Security Model</span><span class="toc-sub">Consent, OAuth 2.1, Process Isolation</span></li>
+      <li><span class="toc-num">13</span><span class="toc-title">Context Window Management</span><span class="toc-sub">Smart Resource Loading</span></li>
+      <li><span class="toc-num">14</span><span class="toc-title">MCP Inspector</span><span class="toc-sub">Debugging &amp; Testing Tool</span></li>
+      <li><span class="toc-num">15</span><span class="toc-title">Ecosystem &amp; Integrations</span><span class="toc-sub">1000+ Servers, Major Adopters</span></li>
+      <li><span class="toc-num">16</span><span class="toc-title">MCP vs Alternatives</span><span class="toc-sub">Comparison Table</span></li>
+      <li><span class="toc-num">17</span><span class="toc-title">Implementation Guide</span><span class="toc-sub">Building Your First MCP Server</span></li>
+      <li><span class="toc-num">18</span><span class="toc-title">Future Roadmap</span><span class="toc-sub">What's Next</span></li>
+      <li><span class="toc-num">19</span><span class="toc-title">Real-World Use Cases</span><span class="toc-sub">IDEs, Agents, Analytics, Enterprise, Research</span></li>
+      <li><span class="toc-num">20</span><span class="toc-title">MCP Configuration Guide</span><span class="toc-sub">claude_desktop_config.json, VS Code, Remote Servers</span></li>
+      <li><span class="toc-num">21</span><span class="toc-title">Content Types &amp; Response Formats</span><span class="toc-sub">Text, Image, Embedded Resource</span></li>
+      <li><span class="toc-num">22</span><span class="toc-title">Protocol Versioning &amp; Compatibility</span><span class="toc-sub">Version Negotiation, Capabilities</span></li>
+      <li><span class="toc-num">23</span><span class="toc-title">Conclusion</span><span class="toc-sub">Key Takeaways</span></li>
+    </ul>
+  </div>
+
+  <hr>
+
+  <!-- ════════════════════════ SECTION 1 ════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">1</div>
+      <h2>Introduction &amp; Problem Statement</h2>
+    </div>
+
+    <p>Artificial intelligence models — particularly Large Language Models (LLMs) — are increasingly deployed as autonomous agents that must interact with external tools, databases, APIs, and services. However, there has historically been no standard way for these models to do so.</p>
+
+    <h3>The M×N Integration Problem</h3>
+    <p>Before MCP, every combination of AI model and tool required a custom integration. With M models and N tools, the ecosystem demanded M×N unique connectors — an exponentially growing maintenance burden.</p>
+
+    <div class="callout amber">
+      <div class="callout-icon">⚠️</div>
+      <div><strong>Real-world impact:</strong> A company using 4 AI models (Claude, GPT, Gemini, LLaMA) with 10 tools (GitHub, Slack, Postgres, Files, Web, Email, Jira, Notion, Stripe, Calendar) would need <strong>40 separate custom integrations</strong> — each with its own authentication, error handling, and maintenance overhead.</div>
+    </div>
+
+    <div class="diagram">
+      <svg viewBox="0 0 600 200" width="580">
+        <!-- Before -->
+        <rect x="0" y="0" width="270" height="190" rx="10" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+        <text x="135" y="22" text-anchor="middle" fill="#92400e" font-size="12" font-weight="700">BEFORE MCP — M×N = 40 integrations</text>
+        <g font-size="10" font-family="Inter,sans-serif">
+          <rect x="14" y="32" width="60" height="20" rx="4" fill="#ddd6fe" stroke="#7c3aed" stroke-width="1"/>
+          <text x="44" y="46" text-anchor="middle" fill="#5b21b6" font-weight="600">Claude</text>
+          <rect x="14" y="60" width="60" height="20" rx="4" fill="#ddd6fe" stroke="#7c3aed" stroke-width="1"/>
+          <text x="44" y="74" text-anchor="middle" fill="#5b21b6" font-weight="600">GPT-4o</text>
+          <rect x="14" y="88" width="60" height="20" rx="4" fill="#ddd6fe" stroke="#7c3aed" stroke-width="1"/>
+          <text x="44" y="102" text-anchor="middle" fill="#5b21b6" font-weight="600">Gemini</text>
+          <rect x="14" y="116" width="60" height="20" rx="4" fill="#ddd6fe" stroke="#7c3aed" stroke-width="1"/>
+          <text x="44" y="130" text-anchor="middle" fill="#5b21b6" font-weight="600">LLaMA</text>
+          <!-- Tools -->
+          <rect x="196" y="32" width="60" height="20" rx="4" fill="#cffafe" stroke="#0891b2" stroke-width="1"/>
+          <text x="226" y="46" text-anchor="middle" fill="#164e63" font-weight="600">GitHub</text>
+          <rect x="196" y="56" width="60" height="20" rx="4" fill="#cffafe" stroke="#0891b2" stroke-width="1"/>
+          <text x="226" y="70" text-anchor="middle" fill="#164e63" font-weight="600">Slack</text>
+          <rect x="196" y="80" width="60" height="20" rx="4" fill="#cffafe" stroke="#0891b2" stroke-width="1"/>
+          <text x="226" y="94" text-anchor="middle" fill="#164e63" font-weight="600">Postgres</text>
+          <rect x="196" y="104" width="60" height="20" rx="4" fill="#cffafe" stroke="#0891b2" stroke-width="1"/>
+          <text x="226" y="118" text-anchor="middle" fill="#164e63" font-weight="600">Files</text>
+          <rect x="196" y="128" width="60" height="20" rx="4" fill="#cffafe" stroke="#0891b2" stroke-width="1"/>
+          <text x="226" y="142" text-anchor="middle" fill="#164e63" font-weight="600">+6 more</text>
+        </g>
+        <!-- Mess lines -->
+        <g stroke="#ef4444" stroke-width="0.7" opacity="0.5">
+          <line x1="74" y1="42" x2="196" y2="42"/><line x1="74" y1="42" x2="196" y2="66"/>
+          <line x1="74" y1="42" x2="196" y2="90"/><line x1="74" y1="42" x2="196" y2="114"/>
+          <line x1="74" y1="70" x2="196" y2="42"/><line x1="74" y1="70" x2="196" y2="66"/>
+          <line x1="74" y1="70" x2="196" y2="90"/><line x1="74" y1="70" x2="196" y2="114"/>
+          <line x1="74" y1="98" x2="196" y2="42"/><line x1="74" y1="98" x2="196" y2="66"/>
+          <line x1="74" y1="98" x2="196" y2="90"/><line x1="74" y1="98" x2="196" y2="114"/>
+          <line x1="74" y1="126" x2="196" y2="42"/><line x1="74" y1="126" x2="196" y2="66"/>
+          <line x1="74" y1="126" x2="196" y2="90"/><line x1="74" y1="126" x2="196" y2="114"/>
+        </g>
+        <text x="135" y="175" text-anchor="middle" fill="#dc2626" font-size="11" font-weight="700">Custom code per pair ✗</text>
+
+        <!-- Arrow -->
+        <text x="296" y="100" text-anchor="middle" fill="#16a34a" font-size="24" font-weight="700">→</text>
+
+        <!-- After -->
+        <rect x="330" y="0" width="270" height="190" rx="10" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5"/>
+        <text x="465" y="22" text-anchor="middle" fill="#14532d" font-size="12" font-weight="700">WITH MCP — M+N = 14 integrations</text>
+        <g font-size="10" font-family="Inter,sans-serif">
+          <rect x="344" y="35" width="60" height="20" rx="4" fill="#ddd6fe" stroke="#7c3aed" stroke-width="1"/>
+          <text x="374" y="49" text-anchor="middle" fill="#5b21b6" font-weight="600">Claude</text>
+          <rect x="344" y="60" width="60" height="20" rx="4" fill="#ddd6fe" stroke="#7c3aed" stroke-width="1"/>
+          <text x="374" y="74" text-anchor="middle" fill="#5b21b6" font-weight="600">GPT-4o</text>
+          <rect x="344" y="85" width="60" height="20" rx="4" fill="#ddd6fe" stroke="#7c3aed" stroke-width="1"/>
+          <text x="374" y="99" text-anchor="middle" fill="#5b21b6" font-weight="600">Gemini</text>
+          <rect x="344" y="110" width="60" height="20" rx="4" fill="#ddd6fe" stroke="#7c3aed" stroke-width="1"/>
+          <text x="374" y="124" text-anchor="middle" fill="#5b21b6" font-weight="600">LLaMA</text>
+          <!-- MCP Hub -->
+          <circle cx="465" cy="82" r="26" fill="#bbf7d0" stroke="#16a34a" stroke-width="2"/>
+          <text x="465" y="79" text-anchor="middle" fill="#14532d" font-size="11" font-weight="700">MCP</text>
+          <text x="465" y="94" text-anchor="middle" fill="#166534" font-size="9">Protocol</text>
+          <!-- Tools -->
+          <rect x="516" y="35" width="70" height="18" rx="4" fill="#cffafe" stroke="#0891b2" stroke-width="1"/>
+          <text x="551" y="48" text-anchor="middle" fill="#164e63" font-weight="600">GitHub</text>
+          <rect x="516" y="58" width="70" height="18" rx="4" fill="#cffafe" stroke="#0891b2" stroke-width="1"/>
+          <text x="551" y="71" text-anchor="middle" fill="#164e63" font-weight="600">Slack</text>
+          <rect x="516" y="81" width="70" height="18" rx="4" fill="#cffafe" stroke="#0891b2" stroke-width="1"/>
+          <text x="551" y="94" text-anchor="middle" fill="#164e63" font-weight="600">Postgres</text>
+          <rect x="516" y="104" width="70" height="18" rx="4" fill="#cffafe" stroke="#0891b2" stroke-width="1"/>
+          <text x="551" y="117" text-anchor="middle" fill="#164e63" font-weight="600">+7 more</text>
+          <!-- Clean lines -->
+          <line x1="404" y1="45" x2="439" y2="72" stroke="#16a34a" stroke-width="1.2"/>
+          <line x1="404" y1="70" x2="439" y2="78" stroke="#16a34a" stroke-width="1.2"/>
+          <line x1="404" y1="95" x2="439" y2="84" stroke="#16a34a" stroke-width="1.2"/>
+          <line x1="404" y1="120" x2="439" y2="90" stroke="#16a34a" stroke-width="1.2"/>
+          <line x1="491" y1="72" x2="516" y2="44" stroke="#0891b2" stroke-width="1.2"/>
+          <line x1="491" y1="78" x2="516" y2="67" stroke="#0891b2" stroke-width="1.2"/>
+          <line x1="491" y1="84" x2="516" y2="90" stroke="#0891b2" stroke-width="1.2"/>
+          <line x1="491" y1="90" x2="516" y2="113" stroke="#0891b2" stroke-width="1.2"/>
+        </g>
+        <text x="465" y="175" text-anchor="middle" fill="#15803d" font-size="11" font-weight="700">One protocol for all ✓</text>
+      </svg>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <h3>Problems with the Old Approach</h3>
+        <ul>
+          <li>Duplicated effort across teams and organizations</li>
+          <li>Inconsistent APIs and authentication patterns</li>
+          <li>Security gaps from ad-hoc implementations</li>
+          <li>Vendor lock-in — switching models breaks everything</li>
+          <li>No shared tooling, no community ecosystem</li>
+        </ul>
+      </div>
+      <div>
+        <h3>What MCP Changes</h3>
+        <ul>
+          <li>Write a server once, works with every MCP-compatible model</li>
+          <li>Standardized authentication, error handling, discovery</li>
+          <li>Community-driven ecosystem of reusable servers</li>
+          <li>Model-agnostic — switch models without rewriting tools</li>
+          <li>Built-in security model with user consent</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ════════════════════════ SECTION 2 ════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">2</div>
+      <h2>What is MCP?</h2>
+    </div>
+
+    <blockquote>"MCP is an open protocol that standardizes how applications provide context to LLMs — like a USB-C port for AI."</blockquote>
+
+    <p><strong>Model Context Protocol (MCP)</strong> is an open standard introduced by Anthropic in November 2024. It defines a universal communication protocol that allows AI models (hosts) to connect with external tools, data sources, and services (servers) through a standardized interface.</p>
+
+    <p>The key insight: just as USB-C standardized how devices connect to computers — eliminating a tangle of incompatible cables — MCP standardizes how AI models connect to the world.</p>
+
+    <div class="callout purple">
+      <div class="callout-icon">💡</div>
+      <div><strong>The USB-C Analogy:</strong> Before USB-C, every device had a different connector. You needed a different cable for every combination. USB-C gave one universal port. MCP does the same for AI — one protocol, infinite integrations.</div>
+    </div>
+
+    <h3>Key Properties</h3>
+    <div class="grid-2">
+      <div class="def-card">
+        <h4>Open Standard</h4>
+        <p>Published under MIT license. Any company or developer can implement it freely. Not controlled by any single vendor.</p>
+      </div>
+      <div class="def-card teal">
+        <h4>JSON-RPC 2.0 Based</h4>
+        <p>Built on the widely-supported JSON-RPC 2.0 specification — a simple, language-agnostic remote procedure call protocol.</p>
+      </div>
+      <div class="def-card amber">
+        <h4>Language Agnostic</h4>
+        <p>Official SDKs for Python, TypeScript, Java, Kotlin, C#. Community SDKs for Rust, Go, Ruby, and more.</p>
+      </div>
+      <div class="def-card green">
+        <h4>Bidirectional</h4>
+        <p>Unlike simple function calling, MCP supports two-way communication — servers can also request things from the host.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ════════════════════════ SECTION 3 ════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <h2>Architecture Overview</h2>
+    </div>
+
+    <p>MCP follows a clean three-layer architecture: a <strong>Host</strong> application containing an LLM, which connects through <strong>MCP Clients</strong> to external <strong>MCP Servers</strong>. The transport layer handles all communication between clients and servers.</p>
+
+    <div class="diagram">
+      <svg viewBox="0 0 700 260" width="680">
+        <!-- Host -->
+        <rect x="0" y="10" width="190" height="240" rx="12" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+        <rect x="0" y="10" width="190" height="36" rx="12" fill="#7c3aed"/>
+        <rect x="0" y="30" width="190" height="16" rx="0" fill="#7c3aed"/>
+        <text x="95" y="32" text-anchor="middle" fill="#fff" font-size="12" font-weight="700" font-family="Inter,sans-serif">HOST APPLICATION</text>
+        <rect x="14" y="56" width="162" height="36" rx="8" fill="#ede9fe" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="95" y="73" text-anchor="middle" fill="#5b21b6" font-size="11" font-weight="600" font-family="Inter,sans-serif">🤖 LLM / AI Model</text>
+        <text x="95" y="87" text-anchor="middle" fill="#7c3aed" font-size="9" font-family="Inter,sans-serif">(Claude, GPT-4o, Gemini…)</text>
+        <rect x="14" y="102" width="74" height="30" rx="7" fill="#fff" stroke="#0891b2" stroke-width="1.2"/>
+        <text x="51" y="117" text-anchor="middle" fill="#0891b2" font-size="10" font-weight="600" font-family="Inter,sans-serif">MCP Client A</text>
+        <rect x="102" y="102" width="74" height="30" rx="7" fill="#fff" stroke="#0891b2" stroke-width="1.2"/>
+        <text x="139" y="117" text-anchor="middle" fill="#0891b2" font-size="10" font-weight="600" font-family="Inter,sans-serif">MCP Client B</text>
+        <line x1="95" y1="92" x2="51" y2="102" stroke="#7c3aed" stroke-width="1.2" stroke-dasharray="3,2"/>
+        <line x1="95" y1="92" x2="139" y2="102" stroke="#7c3aed" stroke-width="1.2" stroke-dasharray="3,2"/>
+        <text x="95" y="165" text-anchor="middle" fill="#64748b" font-size="9" font-family="Inter,sans-serif">(Claude Desktop, VS Code,</text>
+        <text x="95" y="178" text-anchor="middle" fill="#64748b" font-size="9" font-family="Inter,sans-serif">Cursor, Custom Apps)</text>
+
+        <!-- Transport -->
+        <rect x="210" y="60" width="280" height="140" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="1.5" stroke-dasharray="6,3"/>
+        <text x="350" y="82" text-anchor="middle" fill="#92400e" font-size="11" font-weight="700" font-family="Inter,sans-serif">TRANSPORT LAYER</text>
+        <rect x="226" y="90" width="248" height="24" rx="6" fill="#fef3c7" stroke="#fbbf24" stroke-width="1"/>
+        <text x="350" y="106" text-anchor="middle" fill="#92400e" font-size="10" font-family="Inter,sans-serif">stdio (local process)</text>
+        <rect x="226" y="119" width="248" height="24" rx="6" fill="#cffafe" stroke="#0891b2" stroke-width="1"/>
+        <text x="350" y="135" text-anchor="middle" fill="#164e63" font-size="10" font-family="Inter,sans-serif">HTTP + SSE (remote)</text>
+        <rect x="226" y="148" width="248" height="24" rx="6" fill="#ede9fe" stroke="#7c3aed" stroke-width="1"/>
+        <text x="350" y="164" text-anchor="middle" fill="#5b21b6" font-size="10" font-family="Inter,sans-serif">WebSocket (real-time)</text>
+        <text x="350" y="196" text-anchor="middle" fill="#9ca3af" font-size="9" font-family="Inter,sans-serif">JSON-RPC 2.0 protocol</text>
+
+        <!-- Servers -->
+        <rect x="510" y="10" width="190" height="240" rx="12" fill="#ecfdf5" stroke="#0891b2" stroke-width="2"/>
+        <rect x="510" y="10" width="190" height="36" rx="12" fill="#0891b2"/>
+        <rect x="510" y="30" width="190" height="16" rx="0" fill="#0891b2"/>
+        <text x="605" y="32" text-anchor="middle" fill="#fff" font-size="12" font-weight="700" font-family="Inter,sans-serif">MCP SERVERS</text>
+        <rect x="522" y="56" width="166" height="34" rx="7" fill="#fff" stroke="#16a34a" stroke-width="1.2"/>
+        <text x="605" y="72" text-anchor="middle" fill="#15803d" font-size="11" font-weight="600" font-family="Inter,sans-serif">📁 File System Server</text>
+        <text x="605" y="84" text-anchor="middle" fill="#9ca3af" font-size="9" font-family="Inter,sans-serif">read_file, write_file…</text>
+        <rect x="522" y="98" width="166" height="34" rx="7" fill="#fff" stroke="#d97706" stroke-width="1.2"/>
+        <text x="605" y="114" text-anchor="middle" fill="#92400e" font-size="11" font-weight="600" font-family="Inter,sans-serif">🐙 GitHub Server</text>
+        <text x="605" y="126" text-anchor="middle" fill="#9ca3af" font-size="9" font-family="Inter,sans-serif">create_pr, list_issues…</text>
+        <rect x="522" y="140" width="166" height="34" rx="7" fill="#fff" stroke="#7c3aed" stroke-width="1.2"/>
+        <text x="605" y="156" text-anchor="middle" fill="#5b21b6" font-size="11" font-weight="600" font-family="Inter,sans-serif">🗄️ Database Server</text>
+        <text x="605" y="168" text-anchor="middle" fill="#9ca3af" font-size="9" font-family="Inter,sans-serif">run_query, list_tables…</text>
+        <text x="605" y="200" text-anchor="middle" fill="#64748b" font-size="9" font-family="Inter,sans-serif">+ 1000s of community servers</text>
+
+        <!-- Arrows -->
+        <text x="200" y="130" text-anchor="middle" fill="#d97706" font-size="18">⇌</text>
+        <text x="500" y="130" text-anchor="middle" fill="#d97706" font-size="18">⇌</text>
+      </svg>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ════════════════════════ SECTION 4 ════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">4</div>
+      <h2>Core Components</h2>
+    </div>
+
+    <div class="grid-3">
+      <div class="def-card">
+        <h4>🏠 Host</h4>
+        <p>The application the user interacts with. Contains the LLM and manages all MCP clients. Controls permissions and user consent. Examples: Claude Desktop, VS Code with Copilot, Cursor, Windsurf, custom applications.</p>
+      </div>
+      <div class="def-card teal">
+        <h4>🔌 Client</h4>
+        <p>A protocol handler embedded inside the host. Maintains exactly one stateful, long-lived connection to exactly one MCP server. Handles capability negotiation and message routing. One host can have many clients.</p>
+      </div>
+      <div class="def-card amber">
+        <h4>⚙️ Server</h4>
+        <p>A lightweight process that exposes capabilities — tools, resources, and prompts — to clients. Can run locally as a child process (stdio) or remotely over HTTP. Stateless or stateful depending on design.</p>
+      </div>
+    </div>
+
+    <h3>Communication Flow</h3>
+    <div style="display:flex;align-items:center;gap:0;flex-wrap:wrap;margin:16px 0;">
+      <div style="background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:600;color:#5b21b6;">👤 User</div>
+      <div style="padding:0 8px;color:#9ca3af;font-size:18px;">→</div>
+      <div style="background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:600;color:#5b21b6;">🏠 Host (LLM)</div>
+      <div style="padding:0 8px;color:#9ca3af;font-size:18px;">→</div>
+      <div style="background:#cffafe;border:1px solid #a5f3fc;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:600;color:#0891b2;">🔌 MCP Client</div>
+      <div style="padding:0 8px;color:#9ca3af;font-size:18px;">⇌</div>
+      <div style="background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:600;color:#d97706;">⚙️ MCP Server</div>
+      <div style="padding:0 8px;color:#9ca3af;font-size:18px;">→</div>
+      <div style="background:#dcfce7;border:1px solid #86efac;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:600;color:#16a34a;">🌍 External Tool / Data</div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ════════════════════════ SECTION 5 ════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">5</div>
+      <h2>Core Primitives</h2>
+    </div>
+
+    <p>MCP defines five core primitives — the building blocks that servers expose and clients consume.</p>
+
+    <h3>1. Tools — Model-Controlled Actions</h3>
+    <p>Functions the LLM can invoke to perform actions. The AI decides when and how to call them based on the user's request. Each tool has a name, description, and JSON Schema for its input parameters.</p>
+    <div class="callout teal">
+      <div class="callout-icon">🔧</div>
+      <div>Examples: <code>search_web("query")</code>, <code>run_sql("SELECT…")</code>, <code>send_email(to, subject, body)</code>, <code>create_github_pr(title, body, branch)</code></div>
+    </div>
+
+    <h3>2. Resources — Application-Controlled Data</h3>
+    <p>Read-only data exposed by the server as context for the LLM. Unlike tools, resources are controlled by the application (host), not autonomously by the model. Addressed by URIs.</p>
+    <div class="callout teal">
+      <div class="callout-icon">📄</div>
+      <div>Examples: <code>file:///project/src/main.py</code>, <code>postgres://db/users/schema</code>, <code>github://repo/README.md</code></div>
+    </div>
+
+    <h3>3. Prompts — User-Controlled Templates</h3>
+    <p>Reusable prompt templates and workflows that users can select and invoke. They accept parameters and return a structured message sequence ready to send to the LLM.</p>
+    <div class="callout teal">
+      <div class="callout-icon">💬</div>
+      <div>Examples: <code>/code-review (language, code)</code>, <code>/summarize (document)</code>, <code>/debug (error, stack_trace)</code></div>
+    </div>
+
+    <h3>4. Sampling — Server-Initiated LLM Calls</h3>
+    <p>The most powerful primitive. Servers can request the host to generate an LLM completion, enabling recursive, agentic loops where the AI can plan, act, observe, and re-plan.</p>
+    <div class="callout purple">
+      <div class="callout-icon">🔄</div>
+      <div>Flow: Server → <code>createMessage()</code> → Host → LLM → completion → back to Server → Server continues logic. This enables fully autonomous multi-step agents.</div>
+    </div>
+
+    <h3>5. Roots — Access Scope Boundaries</h3>
+    <p>URIs that the client declares to the server, defining the scope of what the server is allowed to access. Roots prevent unauthorized access to files or data outside the intended working context.</p>
+    <div class="callout green">
+      <div class="callout-icon">🌿</div>
+      <div>Example: Declaring <code>file:///home/user/project</code> as a root means the server only has visibility into that directory — not the rest of the file system.</div>
+    </div>
+
+    <h3>Primitive Control Matrix</h3>
+    <table>
+      <thead>
+        <tr><th>Primitive</th><th>Controlled by</th><th>Direction</th><th>Read/Write</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Tools</td><td>AI Model (LLM)</td><td>Client → Server</td><td>Execute (write)</td></tr>
+        <tr><td>Resources</td><td>Application (Host)</td><td>Client ← Server</td><td>Read only</td></tr>
+        <tr><td>Prompts</td><td>User</td><td>Client ← Server</td><td>Read (templates)</td></tr>
+        <tr><td>Sampling</td><td>Server</td><td>Server → Host → LLM</td><td>Request LLM call</td></tr>
+        <tr><td>Roots</td><td>Client (Host)</td><td>Client → Server</td><td>Scope declaration</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr>
+
+  <!-- ════════════════════════ SECTION 6 ════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">6</div>
+      <h2>Transport Layer</h2>
+    </div>
+
+    <p>MCP is transport-agnostic. The same JSON-RPC 2.0 messages can flow over different transports depending on whether the server is local or remote.</p>
+
+    <div class="grid-3">
+      <div class="def-card green">
+        <h4>🖥️ stdio (Standard I/O)</h4>
+        <p>Server runs as a local child process. Host communicates via stdin/stdout pipes. Zero network overhead. Most common for local tools (filesystem, git, databases).</p>
+      </div>
+      <div class="def-card teal">
+        <h4>🌐 HTTP + SSE</h4>
+        <p>Server-Sent Events for server→client streaming. HTTP POST for client→server. Supports remote servers behind firewalls. Standard for cloud-hosted MCP services.</p>
+      </div>
+      <div class="def-card">
+        <h4>⚡ WebSocket</h4>
+        <p>Full-duplex bidirectional connection. Best for real-time, high-frequency tool interactions. Ideal when low latency and streaming responses are critical.</p>
+      </div>
+    </div>
+
+    <h3>JSON-RPC 2.0 Message Format</h3>
+    <div class="code-block">
+      <span class="lang">Request</span>
+<span class="cmt">// Client → Server: invoke a tool</span>
+{
+  <span class="str">"jsonrpc"</span>: <span class="str">"2.0"</span>,
+  <span class="str">"id"</span>: <span class="num">1</span>,
+  <span class="str">"method"</span>: <span class="str">"tools/call"</span>,
+  <span class="str">"params"</span>: {
+    <span class="str">"name"</span>: <span class="str">"search_web"</span>,
+    <span class="str">"arguments"</span>: { <span class="str">"query"</span>: <span class="str">"MCP protocol 2024"</span> },
+    <span class="str">"_meta"</span>: { <span class="str">"progressToken"</span>: <span class="str">"tok-42"</span> }
+  }
+}
+    </div>
+    <div class="code-block">
+      <span class="lang">Response</span>
+<span class="cmt">// Server → Client: tool result</span>
+{
+  <span class="str">"jsonrpc"</span>: <span class="str">"2.0"</span>,
+  <span class="str">"id"</span>: <span class="num">1</span>,
+  <span class="str">"result"</span>: {
+    <span class="str">"content"</span>: [{ <span class="str">"type"</span>: <span class="str">"text"</span>, <span class="str">"text"</span>: <span class="str">"MCP released Nov 2024 by Anthropic..."</span> }],
+    <span class="str">"isError"</span>: <span class="kw">false</span>
+  }
+}
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ════════════════════════ SECTION 7 ════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">7</div>
+      <h2>Connection Lifecycle</h2>
+    </div>
+
+    <p>Every MCP session follows a strict four-phase lifecycle that ensures clean initialization, capability discovery, operation, and teardown.</p>
+
+    <h3>Phase 1 — Initialize</h3>
+    <p>Client sends an <code>initialize</code> request containing its protocol version and supported capabilities. Server responds with its own capabilities and server information. Client confirms by sending an <code>initialized</code> notification.</p>
+
+    <h3>Phase 2 — Discovery</h3>
+    <p>Client calls <code>tools/list</code>, <code>resources/list</code>, and <code>prompts/list</code> to enumerate all capabilities the server offers. The host uses this to build the LLM's available tool namespace.</p>
+
+    <h3>Phase 3 — Operation</h3>
+    <p>Normal request/response cycles. Either side can send notifications at any time. Long-running operations report progress via <code>notifications/progress</code>. Requests can be cancelled with <code>notifications/cancelled</code>.</p>
+
+    <h3>Phase 4 — Shutdown</h3>
+    <p>Either side can initiate graceful disconnect. Server cleans up resources, client releases the connection. Abrupt disconnects (e.g., stdio EOF) are handled as implicit shutdowns.</p>
+
+    <div class="callout amber">
+      <div class="callout-icon">⚠️</div>
+      <div><strong>Important:</strong> No requests can be sent before the <code>initialized</code> notification is acknowledged. Any message sent before this phase completes must be rejected.</div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ════════════════════════ SECTION 8 ════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">8</div>
+      <h2>Notifications &amp; Progress</h2>
+    </div>
+
+    <p>Notifications are one-way messages — sent without expecting a response. They decouple async events from the request/response cycle.</p>
+
+    <h3>Server → Client Notifications</h3>
+    <table>
+      <thead><tr><th>Method</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>notifications/progress</code></td><td>Report % completion of a long-running tool call</td></tr>
+        <tr><td><code>notifications/message</code></td><td>Send a log message (debug / info / warning / error)</td></tr>
+        <tr><td><code>notifications/resources/updated</code></td><td>A subscribed resource has changed</td></tr>
+        <tr><td><code>notifications/resources/list_changed</code></td><td>The list of available resources changed</td></tr>
+        <tr><td><code>notifications/tools/list_changed</code></td><td>New tools became available</td></tr>
+        <tr><td><code>notifications/prompts/list_changed</code></td><td>Prompt templates updated</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Client → Server Notifications</h3>
+    <table>
+      <thead><tr><th>Method</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>notifications/initialized</code></td><td>Client is ready to begin operation phase</td></tr>
+        <tr><td><code>notifications/roots/list_changed</code></td><td>Client's root scope has been updated</td></tr>
+        <tr><td><code>notifications/cancelled</code></td><td>Cancel an in-progress request by ID</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr>
+
+  <!-- ════════════════════════ SECTION 9 ════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">9</div>
+      <h2>Multi-Server Architecture</h2>
+    </div>
+
+    <p>A single host application can maintain simultaneous connections to multiple MCP servers. The host aggregates all tools from all connected servers into one unified namespace, which the LLM can browse and select from.</p>
+
+    <h3>Design Rules</h3>
+    <ul>
+      <li>Each MCP Client maintains exactly one connection to exactly one MCP Server</li>
+      <li>One host can have many clients (and thus many connected servers)</li>
+      <li>Tool names should be unique across all servers connected to a given host</li>
+      <li>Servers operate independently — one server failing does not affect others</li>
+      <li>The host presents all tools as a flat namespace to the LLM</li>
+    </ul>
+
+    <div class="callout green">
+      <div class="callout-icon">💡</div>
+      <div><strong>Example:</strong> Claude Desktop connecting simultaneously to: filesystem server (local), GitHub server (local), Brave Search server (local), Postgres server (local), and a custom company API server (remote via HTTP+SSE).</div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ════════════════════════ SECTION 10 ════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">10</div>
+      <h2>Agentic Loops</h2>
+    </div>
+
+    <p>MCP's Sampling primitive enables complex, multi-step autonomous agent behavior. The AI doesn't just respond — it plans, acts, observes results, and re-plans in a continuous loop.</p>
+
+    <h3>The ReAct Pattern via MCP</h3>
+    <ol>
+      <li><strong>Plan:</strong> LLM receives the user's goal and decides what actions to take</li>
+      <li><strong>Act:</strong> LLM calls an MCP tool (search web, read file, query DB)</li>
+      <li><strong>Observe:</strong> MCP Server returns the result back to the LLM context</li>
+      <li><strong>Reflect:</strong> LLM evaluates if the goal is met; if not, re-plans and loops</li>
+    </ol>
+
+    <h3>Sampling Flow</h3>
+    <p>Sampling enables servers to drive this loop autonomously. When a server needs to ask the LLM to reason about intermediate results, it calls <code>createMessage()</code>, the host forwards this to the LLM, and the LLM's completion is returned to the server — which then continues its logic.</p>
+
+    <div class="callout purple">
+      <div class="callout-icon">🤖</div>
+      <div><strong>Real Example — Autonomous Code Review Agent:</strong><br>
+      1. User: "Review and fix all bugs in my repo"<br>
+      2. Agent reads files via File System server<br>
+      3. Agent searches for similar known issues via Brave Search<br>
+      4. Agent uses Sampling to reason about fixes<br>
+      5. Agent writes fixes and creates a PR via GitHub server<br>
+      6. All without manual intervention — while host shows each step to user for approval</div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ════════════════════════ SECTION 11 ════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">11</div>
+      <h2>Error Handling &amp; Cancellation</h2>
+    </div>
+
+    <p>MCP distinguishes between two types of errors: protocol-level errors (JSON-RPC transport failures) and tool-level errors (the tool ran but produced a failure result).</p>
+
+    <h3>JSON-RPC Standard Error Codes</h3>
+    <table>
+      <thead><tr><th>Code</th><th>Name</th><th>When It Occurs</th></tr></thead>
+      <tbody>
+        <tr><td><code>-32700</code></td><td>Parse Error</td><td>Invalid JSON received by server</td></tr>
+        <tr><td><code>-32600</code></td><td>Invalid Request</td><td>JSON is not a valid RPC object</td></tr>
+        <tr><td><code>-32601</code></td><td>Method Not Found</td><td>Server doesn't implement the method</td></tr>
+        <tr><td><code>-32602</code></td><td>Invalid Params</td><td>Missing or wrong-type parameters</td></tr>
+        <tr><td><code>-32603</code></td><td>Internal Error</td><td>Server-side execution failure</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Tool-Level Errors</h3>
+    <p>When a tool runs successfully (no crash) but produces a failure (e.g., file not found), the server returns a successful JSON-RPC response with <code>isError: true</code> in the result content. This allows the LLM to read the error message and reason about it.</p>
+
+    <h3>Request Cancellation</h3>
+    <p>Either side can cancel an in-progress request by sending a <code>notifications/cancelled</code> notification with the original request's ID. Servers should handle this gracefully and release any held resources.</p>
+  </div>
+
+  <hr>
+
+  <!-- ════════════════════════ SECTION 12 ════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">12</div>
+      <h2>Security Model</h2>
+    </div>
+
+    <p>MCP is designed with security as a first-class concern. The protocol enforces multiple layers of protection.</p>
+
+    <div class="grid-2">
+      <div class="def-card">
+        <h4>🛡️ User Consent First</h4>
+        <p>Every tool invocation must surface to the user via the host. Servers cannot take actions silently without user awareness and approval. The host is the trust enforcer.</p>
+      </div>
+      <div class="def-card amber">
+        <h4>🔒 Least Privilege</h4>
+        <p>Servers only declare the specific capabilities they need. No broad system permissions are granted. Roots further limit file system access to declared scopes.</p>
+      </div>
+      <div class="def-card teal">
+        <h4>🔐 OAuth 2.1 for Remote</h4>
+        <p>Remote MCP servers authenticate using OAuth 2.1 with PKCE. No credentials are exposed to the AI model. The host manages auth tokens transparently.</p>
+      </div>
+      <div class="def-card green">
+        <h4>🧱 Process Isolation</h4>
+        <p>Local servers run as separate OS processes, sandboxed from the host application and each other. A compromised server cannot access other servers' data.</p>
+      </div>
+    </div>
+
+    <h3>Trust Levels</h3>
+    <table>
+      <thead><tr><th>Layer</th><th>Who Controls It</th><th>What It Protects</th></tr></thead>
+      <tbody>
+        <tr><td>User consent</td><td>Human (via Host UI)</td><td>Unauthorized actions</td></tr>
+        <tr><td>Host permissions</td><td>Application developer</td><td>What servers can be connected</td></tr>
+        <tr><td>Roots scoping</td><td>Client (Host)</td><td>File system access boundaries</td></tr>
+        <tr><td>OAuth 2.1</td><td>Remote server</td><td>Authentication &amp; identity</td></tr>
+        <tr><td>Process isolation</td><td>OS</td><td>Cross-server data leakage</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr>
+
+  <!-- ════════════════════════ SECTION 13 ════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">13</div>
+      <h2>Context Window Management</h2>
+    </div>
+
+    <p>LLMs have finite context windows. Naively dumping all available data into the context leads to token limit errors, degraded performance, and irrelevant information. MCP enables intelligent, on-demand context loading.</p>
+
+    <h3>Strategies</h3>
+    <ul>
+      <li><strong>Lazy loading:</strong> Resources are only read when the LLM explicitly requests them via a tool call, not pre-loaded</li>
+      <li><strong>Chunked resources:</strong> Large files can be paged — the LLM requests specific line ranges</li>
+      <li><strong>Semantic filtering:</strong> Database servers return only rows matching the query, not entire tables</li>
+      <li><strong>Server-side summarization:</strong> Servers can summarize before returning, reducing tokens consumed</li>
+      <li><strong>Resource subscriptions:</strong> LLM subscribes to a resource and only receives diffs when it changes</li>
+    </ul>
+
+    <div class="callout green">
+      <div class="callout-icon">📊</div>
+      <div><strong>Impact:</strong> Without MCP-aware context management, a 100k token context window fills up with irrelevant data. With MCP, the same window contains only the 5-10% of data actually needed — dramatically improving accuracy and cost-efficiency.</div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ════════════════════════ SECTION 14 ════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">14</div>
+      <h2>MCP Inspector — Debugging Tool</h2>
+    </div>
+
+    <p>The <strong>MCP Inspector</strong> is the official visual debugging tool provided by Anthropic for testing MCP servers during development. It provides a browser-based UI to interactively test all server capabilities.</p>
+
+    <h3>Installation &amp; Launch</h3>
+    <div class="code-block">
+<span class="lang">Terminal</span>
+<span class="cmt"># No installation needed — run via npx</span>
+<span class="fn">npx</span> @modelcontextprotocol/inspector python my_server.py
+
+<span class="cmt"># For TypeScript servers</span>
+<span class="fn">npx</span> @modelcontextprotocol/inspector node dist/server.js
+
+<span class="cmt"># Opens browser UI at http://localhost:5173</span>
+    </div>
+
+    <h3>Features</h3>
+    <ul>
+      <li><strong>Tools tab:</strong> Lists all tools with schemas. Click to test with custom inputs. See raw JSON-RPC request/response.</li>
+      <li><strong>Resources tab:</strong> Browse all resources exposed by the server. Read content directly in the browser.</li>
+      <li><strong>Prompts tab:</strong> View all prompt templates. Fill in parameters and preview the output.</li>
+      <li><strong>Messages tab:</strong> Real-time log of all JSON-RPC messages exchanged between Inspector and server.</li>
+    </ul>
+  </div>
+
+  <hr>
+
+  <!-- ════════════════════════ SECTION 15 ════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">15</div>
+      <h2>Ecosystem &amp; Integrations</h2>
+    </div>
+
+    <h3>Host Applications (MCP Clients)</h3>
+    <div>
+      <span class="pill">Claude Desktop</span>
+      <span class="pill">VS Code (Copilot)</span>
+      <span class="pill">Cursor</span>
+      <span class="pill">Windsurf</span>
+      <span class="pill">Zed Editor</span>
+      <span class="pill">JetBrains IDEs</span>
+      <span class="pill">Continue.dev</span>
+      <span class="pill">Cline</span>
+      <span class="pill">Sourcegraph Cody</span>
+    </div>
+
+    <h3>Official Servers (Anthropic-maintained)</h3>
+    <div>
+      <span class="pill teal">filesystem</span>
+      <span class="pill teal">github</span>
+      <span class="pill teal">postgres</span>
+      <span class="pill teal">sqlite</span>
+      <span class="pill teal">brave-search</span>
+      <span class="pill teal">slack</span>
+      <span class="pill teal">google-maps</span>
+      <span class="pill teal">puppeteer</span>
+      <span class="pill teal">memory</span>
+      <span class="pill teal">everything</span>
+    </div>
+
+    <h3>Community Servers (1000+ on GitHub)</h3>
+    <div>
+      <span class="pill amber">Docker</span>
+      <span class="pill amber">Kubernetes</span>
+      <span class="pill amber">AWS</span>
+      <span class="pill amber">Notion</span>
+      <span class="pill amber">Linear</span>
+      <span class="pill amber">Stripe</span>
+      <span class="pill amber">Shopify</span>
+      <span class="pill amber">Figma</span>
+      <span class="pill amber">Jira</span>
+      <span class="pill amber">Confluence</span>
+      <span class="pill amber">Salesforce</span>
+      <span class="pill amber">MongoDB</span>
+    </div>
+
+    <h3>Major Industry Adoption</h3>
+    <p>By mid-2025, MCP had been adopted as a standard by <strong>OpenAI</strong>, <strong>Google DeepMind</strong>, and <strong>Microsoft</strong> — confirming its status as an industry-wide standard, not just an Anthropic product.</p>
+  </div>
+
+  <hr>
+
+  <!-- ════════════════════════ SECTION 16 ════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">16</div>
+      <h2>MCP vs Alternatives</h2>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>Feature</th><th>MCP</th><th>Custom APIs</th><th>LangChain Tools</th><th>OpenAI Function Call</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Open Standard</td><td class="check">✓</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td></tr>
+        <tr><td>Model Agnostic</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="cross">OpenAI only</td></tr>
+        <tr><td>Reusable Servers</td><td class="check">✓</td><td class="cross">✗</td><td class="cross">Partial</td><td class="cross">✗</td></tr>
+        <tr><td>Bidirectional (Sampling)</td><td class="check">✓</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td></tr>
+        <tr><td>Resource Exposure</td><td class="check">✓</td><td class="cross">Manual</td><td class="cross">✗</td><td class="cross">✗</td></tr>
+        <tr><td>Security Model Built-in</td><td class="check">✓</td><td class="cross">DIY</td><td class="cross">DIY</td><td class="cross">DIY</td></tr>
+        <tr><td>Progress / Cancellation</td><td class="check">✓</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td></tr>
+        <tr><td>Community Ecosystem</td><td class="check">1000+</td><td class="cross">None</td><td class="check">Some</td><td class="cross">None</td></tr>
+        <tr><td>Root-based Access Control</td><td class="check">✓</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr>
+
+  <!-- ════════════════════════ SECTION 17 ════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">17</div>
+      <h2>Implementation Guide</h2>
+    </div>
+
+    <p>Building an MCP server takes three steps: declare tools/resources, implement handlers, choose a transport.</p>
+
+    <h3>Python Implementation</h3>
+    <div class="code-block">
+<span class="lang">Python</span>
+<span class="kw">from</span> mcp.server <span class="kw">import</span> Server
+<span class="kw">from</span> mcp.types <span class="kw">import</span> Tool, TextContent, Resource
+<span class="kw">import</span> mcp.server.stdio <span class="kw">as</span> stdio
+
+app = <span class="fn">Server</span>(<span class="str">"my-server"</span>)
+
+<span class="cmt"># Step 1: Declare tools</span>
+<span class="kw">@app</span>.list_tools()
+<span class="kw">async def</span> <span class="fn">list_tools</span>():
+    <span class="kw">return</span> [<span class="fn">Tool</span>(
+        name=<span class="str">"get_weather"</span>,
+        description=<span class="str">"Get current weather for a city"</span>,
+        inputSchema={
+            <span class="str">"type"</span>: <span class="str">"object"</span>,
+            <span class="str">"properties"</span>: { <span class="str">"city"</span>: { <span class="str">"type"</span>: <span class="str">"string"</span> } },
+            <span class="str">"required"</span>: [<span class="str">"city"</span>]
+        }
+    )]
+
+<span class="cmt"># Step 2: Implement handler</span>
+<span class="kw">@app</span>.call_tool()
+<span class="kw">async def</span> <span class="fn">call_tool</span>(name, arguments):
+    <span class="kw">if</span> name == <span class="str">"get_weather"</span>:
+        city = arguments[<span class="str">"city"</span>]
+        data = <span class="kw">await</span> <span class="fn">fetch_weather_api</span>(city)
+        <span class="kw">return</span> [<span class="fn">TextContent</span>(type=<span class="str">"text"</span>, text=<span class="fn">f</span><span class="str">"Weather in {city}: {data}"</span>)]
+
+<span class="cmt"># Step 3: Run with stdio transport</span>
+<span class="kw">async def</span> <span class="fn">main</span>():
+    <span class="kw">async with</span> stdio.<span class="fn">stdio_server</span>() <span class="kw">as</span> streams:
+        <span class="kw">await</span> app.<span class="fn">run</span>(*streams)
+    </div>
+
+    <h3>Available SDKs</h3>
+    <table>
+      <thead><tr><th>Language</th><th>Package</th><th>Maintainer</th></tr></thead>
+      <tbody>
+        <tr><td>Python</td><td><code>pip install mcp</code></td><td>Anthropic (official)</td></tr>
+        <tr><td>TypeScript/JS</td><td><code>npm install @modelcontextprotocol/sdk</code></td><td>Anthropic (official)</td></tr>
+        <tr><td>Java / Kotlin</td><td>Spring AI MCP integration</td><td>Spring Team (official)</td></tr>
+        <tr><td>C#</td><td><code>dotnet add package ModelContextProtocol</code></td><td>Microsoft (official)</td></tr>
+        <tr><td>Rust</td><td><code>mcp-rs</code> crate</td><td>Community</td></tr>
+        <tr><td>Go</td><td><code>mcp-go</code></td><td>Community</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr>
+
+  <!-- ════════════════════════ SECTION 18 ════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">18</div>
+      <h2>Future Roadmap</h2>
+    </div>
+
+    <div class="grid-2">
+      <div class="def-card">
+        <h4>🤝 Multi-Agent Networks</h4>
+        <p>Multiple AI agents sharing the same MCP servers, with agent-to-agent communication over MCP — enabling hierarchical, composable agent pipelines.</p>
+      </div>
+      <div class="def-card teal">
+        <h4>📡 Resource Subscriptions</h4>
+        <p>Real-time push notifications when subscribed resources change — eliminating the need for polling and enabling truly reactive AI applications.</p>
+      </div>
+      <div class="def-card amber">
+        <h4>🏪 Server Marketplace</h4>
+        <p>One-click discovery, installation, and configuration of MCP servers — similar to browser extensions or VS Code marketplace.</p>
+      </div>
+      <div class="def-card green">
+        <h4>🔗 Server Chaining</h4>
+        <p>MCP servers calling other MCP servers — composable server graphs that enable complex multi-hop data flows.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ════════════════════════ SECTION 19 ════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">19</div>
+      <h2>Real-World Use Cases</h2>
+    </div>
+
+    <p>MCP is not a theoretical standard — it is already powering production AI applications across industries. Below are the most common and impactful use cases.</p>
+
+    <h3>1. AI-Powered Development Environments</h3>
+    <p>IDEs like VS Code, Cursor, and Windsurf use MCP to give AI assistants full awareness of the developer's environment. The AI can read any file in the project, run tests, query git history, open pull requests on GitHub, and search documentation — all through MCP servers running locally.</p>
+    <div class="callout teal">
+      <div class="callout-icon">💻</div>
+      <div><strong>Servers used:</strong> filesystem, github, git, postgres, brave-search, terminal</div>
+    </div>
+
+    <h3>2. Autonomous Research Agents</h3>
+    <p>An AI research agent can receive a topic, search the web for recent papers, download PDFs, extract key information, cross-reference findings, and produce a structured summary — all autonomously. Each capability is exposed by a separate MCP server.</p>
+    <div class="callout purple">
+      <div class="callout-icon">🔬</div>
+      <div><strong>Servers used:</strong> brave-search, puppeteer (browser), filesystem (PDF storage), memory (knowledge graph)</div>
+    </div>
+
+    <h3>3. Natural Language Database Querying</h3>
+    <p>Business users ask questions in plain English. An MCP database server translates them to SQL, executes the query against a live database, and returns structured results the LLM formats into a readable answer — no SQL knowledge required.</p>
+    <div class="callout teal">
+      <div class="callout-icon">📊</div>
+      <div><strong>Servers used:</strong> postgres, sqlite, mysql — whichever database the organization uses</div>
+    </div>
+
+    <h3>4. Enterprise Workflow Automation</h3>
+    <p>AI assistants connected to Jira, Confluence, Slack, Salesforce, and email can handle entire business workflows — triaging tickets, drafting responses, updating CRM records, and notifying teams — through a single chat interface.</p>
+    <div class="callout amber">
+      <div class="callout-icon">🏢</div>
+      <div><strong>Servers used:</strong> slack, jira, confluence, gmail, salesforce MCP servers</div>
+    </div>
+
+    <h3>5. Code Review &amp; Security Auditing</h3>
+    <p>An automated code review agent reads every changed file in a PR, checks for security vulnerabilities, cross-references known CVEs via web search, and posts detailed review comments directly on GitHub — saving hours of manual review time.</p>
+
+    <h3>6. Data Pipeline Monitoring</h3>
+    <p>AI agents monitor production systems, query metrics from databases, check log files, correlate anomalies across multiple data sources, and automatically create incident tickets — all through MCP servers connected to the relevant infrastructure.</p>
+
+    <div class="grid-2" style="margin-top:16px;">
+      <div class="def-card green">
+        <h4>🎨 Creative &amp; Design</h4>
+        <p>AI manipulates Figma designs, generates images, renders previews, and manages design assets through MCP servers connecting to creative tools.</p>
+      </div>
+      <div class="def-card">
+        <h4>🏥 Healthcare &amp; Research</h4>
+        <p>PubMed search, clinical database queries, literature synthesis, and lab instrument data retrieval — all through domain-specific MCP servers.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ════════════════════════ SECTION 20 ════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">20</div>
+      <h2>MCP Configuration Guide</h2>
+    </div>
+
+    <p>To use MCP servers in a host application, you configure them in the host's settings file. Here is how configuration works in the most common hosts.</p>
+
+    <h3>Claude Desktop — claude_desktop_config.json</h3>
+    <p>Located at <code>~/Library/Application Support/Claude/claude_desktop_config.json</code> (macOS) or <code>%APPDATA%\Claude\claude_desktop_config.json</code> (Windows).</p>
+
+    <div class="code-block">
+      <span class="lang">JSON</span>
+{
+  <span class="str">"mcpServers"</span>: {
+    <span class="str">"filesystem"</span>: {
+      <span class="str">"command"</span>: <span class="str">"npx"</span>,
+      <span class="str">"args"</span>: [
+        <span class="str">"-y"</span>,
+        <span class="str">"@modelcontextprotocol/server-filesystem"</span>,
+        <span class="str">"/home/user/project"</span>
+      ]
+    },
+    <span class="str">"github"</span>: {
+      <span class="str">"command"</span>: <span class="str">"npx"</span>,
+      <span class="str">"args"</span>: [<span class="str">"-y"</span>, <span class="str">"@modelcontextprotocol/server-github"</span>],
+      <span class="str">"env"</span>: {
+        <span class="str">"GITHUB_PERSONAL_ACCESS_TOKEN"</span>: <span class="str">"ghp_your_token_here"</span>
+      }
+    },
+    <span class="str">"postgres"</span>: {
+      <span class="str">"command"</span>: <span class="str">"npx"</span>,
+      <span class="str">"args"</span>: [
+        <span class="str">"-y"</span>,
+        <span class="str">"@modelcontextprotocol/server-postgres"</span>,
+        <span class="str">"postgresql://localhost/mydb"</span>
+      ]
+    },
+    <span class="str">"my-python-server"</span>: {
+      <span class="str">"command"</span>: <span class="str">"python"</span>,
+      <span class="str">"args"</span>: [<span class="str">"/path/to/my_server.py"</span>],
+      <span class="str">"env"</span>: {
+        <span class="str">"API_KEY"</span>: <span class="str">"your_api_key"</span>
+      }
+    }
+  }
+}
+    </div>
+
+    <h3>VS Code — settings.json</h3>
+    <div class="code-block">
+      <span class="lang">JSON</span>
+{
+  <span class="str">"github.copilot.chat.mcp.servers"</span>: {
+    <span class="str">"filesystem"</span>: {
+      <span class="str">"command"</span>: <span class="str">"npx"</span>,
+      <span class="str">"args"</span>: [<span class="str">"-y"</span>, <span class="str">"@modelcontextprotocol/server-filesystem"</span>, <span class="str">"."</span>]
+    }
+  }
+}
+    </div>
+
+    <h3>Configuration Fields Explained</h3>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>command</code></td><td>string</td><td>Executable to launch the server (node, python, npx…)</td></tr>
+        <tr><td><code>args</code></td><td>string[]</td><td>Arguments passed to the command</td></tr>
+        <tr><td><code>env</code></td><td>object</td><td>Environment variables (API keys, connection strings)</td></tr>
+        <tr><td><code>url</code></td><td>string</td><td>For remote servers — HTTP base URL instead of command</td></tr>
+        <tr><td><code>headers</code></td><td>object</td><td>HTTP headers for remote servers (Authorization token)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Remote Server Configuration</h3>
+    <div class="code-block">
+      <span class="lang">JSON — Remote Server</span>
+{
+  <span class="str">"mcpServers"</span>: {
+    <span class="str">"remote-api"</span>: {
+      <span class="str">"url"</span>: <span class="str">"https://api.example.com/mcp"</span>,
+      <span class="str">"headers"</span>: {
+        <span class="str">"Authorization"</span>: <span class="str">"Bearer your_oauth_token"</span>
+      }
+    }
+  }
+}
+    </div>
+
+    <div class="callout green">
+      <div class="callout-icon">💡</div>
+      <div><strong>Quick start:</strong> Install any official server with <code>npx -y @modelcontextprotocol/server-NAME</code> — no global install needed. The <code>-y</code> flag auto-confirms the npx download.</div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ════════════════════════ SECTION 21 ════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">21</div>
+      <h2>Content Types &amp; Response Formats</h2>
+    </div>
+
+    <p>MCP tool call results and resource contents can carry different types of data. Understanding content types is essential for building servers that return rich, meaningful responses.</p>
+
+    <h3>Three Content Types</h3>
+
+    <div class="grid-3">
+      <div class="def-card">
+        <h4>📝 Text Content</h4>
+        <p>Plain text or markdown. The most common type — used for query results, summaries, code output, and status messages.</p>
+      </div>
+      <div class="def-card teal">
+        <h4>🖼️ Image Content</h4>
+        <p>Base64-encoded image data with a MIME type. Used for screenshots, charts, diagrams, or any visual output from a tool.</p>
+      </div>
+      <div class="def-card amber">
+        <h4>📎 Embedded Resource</h4>
+        <p>A reference to a resource (by URI) or inline resource content. Lets tools return file contents without re-reading.</p>
+      </div>
+    </div>
+
+    <h3>Text Content Example</h3>
+    <div class="code-block">
+      <span class="lang">Python</span>
+<span class="kw">return</span> [<span class="fn">TextContent</span>(
+    type=<span class="str">"text"</span>,
+    text=<span class="str">"Query returned 42 rows.\n\n| id | name | email |\n|---|---|---|\n| 1 | Alice | alice@example.com |"</span>
+)]
+    </div>
+
+    <h3>Image Content Example</h3>
+    <div class="code-block">
+      <span class="lang">Python</span>
+<span class="kw">import</span> base64
+
+<span class="kw">with</span> <span class="fn">open</span>(<span class="str">"chart.png"</span>, <span class="str">"rb"</span>) <span class="kw">as</span> f:
+    image_data = base64.<span class="fn">b64encode</span>(f.<span class="fn">read</span>()).<span class="fn">decode</span>()
+
+<span class="kw">return</span> [<span class="fn">ImageContent</span>(
+    type=<span class="str">"image"</span>,
+    data=image_data,
+    mimeType=<span class="str">"image/png"</span>
+)]
+    </div>
+
+    <h3>Multiple Content Items in One Response</h3>
+    <p>A single tool call can return multiple content items of mixed types — for example, a text summary alongside an image chart:</p>
+    <div class="code-block">
+      <span class="lang">Python</span>
+<span class="kw">return</span> [
+    <span class="fn">TextContent</span>(type=<span class="str">"text"</span>, text=<span class="str">"Sales data for Q1 2026:"</span>),
+    <span class="fn">ImageContent</span>(type=<span class="str">"image"</span>, data=chart_b64, mimeType=<span class="str">"image/png"</span>),
+    <span class="fn">TextContent</span>(type=<span class="str">"text"</span>, text=<span class="str">"Total revenue: $1.2M (+23% YoY)"</span>)
+]
+    </div>
+
+    <h3>Resource Content Types</h3>
+    <table>
+      <thead><tr><th>MIME Type</th><th>Use Case</th></tr></thead>
+      <tbody>
+        <tr><td><code>text/plain</code></td><td>Plain text files, logs, CSV data</td></tr>
+        <tr><td><code>text/markdown</code></td><td>Documentation, README files</td></tr>
+        <tr><td><code>application/json</code></td><td>Structured data, API responses</td></tr>
+        <tr><td><code>image/png</code>, <code>image/jpeg</code></td><td>Screenshots, charts, diagrams</td></tr>
+        <tr><td><code>application/pdf</code></td><td>Documents, reports</td></tr>
+        <tr><td><code>text/html</code></td><td>Web pages, rendered content</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr>
+
+  <!-- ════════════════════════ SECTION 22 ════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">22</div>
+      <h2>Protocol Versioning &amp; Compatibility</h2>
+    </div>
+
+    <p>MCP uses explicit version negotiation during the initialization handshake to ensure client and server agree on a compatible protocol version before any operations begin.</p>
+
+    <h3>Version Negotiation Flow</h3>
+    <div class="code-block">
+      <span class="lang">Version Negotiation</span>
+<span class="cmt">// Client sends its supported version</span>
+{
+  <span class="str">"method"</span>: <span class="str">"initialize"</span>,
+  <span class="str">"params"</span>: {
+    <span class="str">"protocolVersion"</span>: <span class="str">"2024-11-05"</span>,
+    <span class="str">"clientInfo"</span>: { <span class="str">"name"</span>: <span class="str">"ClaudeDesktop"</span>, <span class="str">"version"</span>: <span class="str">"1.0.0"</span> },
+    <span class="str">"capabilities"</span>: {
+      <span class="str">"roots"</span>: { <span class="str">"listChanged"</span>: <span class="kw">true</span> },
+      <span class="str">"sampling"</span>: {}
+    }
+  }
+}
+
+<span class="cmt">// Server responds with its version (must match or be older)</span>
+{
+  <span class="str">"result"</span>: {
+    <span class="str">"protocolVersion"</span>: <span class="str">"2024-11-05"</span>,
+    <span class="str">"serverInfo"</span>: { <span class="str">"name"</span>: <span class="str">"my-server"</span>, <span class="str">"version"</span>: <span class="str">"1.2.0"</span> },
+    <span class="str">"capabilities"</span>: {
+      <span class="str">"tools"</span>: { <span class="str">"listChanged"</span>: <span class="kw">true</span> },
+      <span class="str">"resources"</span>: { <span class="str">"subscribe"</span>: <span class="kw">true</span>, <span class="str">"listChanged"</span>: <span class="kw">true</span> },
+      <span class="str">"prompts"</span>: { <span class="str">"listChanged"</span>: <span class="kw">true</span> },
+      <span class="str">"logging"</span>: {}
+    }
+  }
+}
+    </div>
+
+    <h3>Compatibility Rules</h3>
+    <ul>
+      <li>If the server cannot support the client's requested version, it responds with a version it does support</li>
+      <li>If the client cannot work with that version, it must disconnect</li>
+      <li>Version strings follow a date format: <code>YYYY-MM-DD</code></li>
+      <li>Newer clients must remain backward-compatible with older servers</li>
+    </ul>
+
+    <h3>Capabilities Declaration</h3>
+    <p>Both client and server declare their capabilities during initialization. A capability not declared is assumed unsupported — the other side must not use it.</p>
+
+    <table>
+      <thead><tr><th>Capability</th><th>Declared by</th><th>What it enables</th></tr></thead>
+      <tbody>
+        <tr><td><code>tools</code></td><td>Server</td><td>Server exposes callable tools</td></tr>
+        <tr><td><code>resources</code></td><td>Server</td><td>Server exposes readable resources</td></tr>
+        <tr><td><code>prompts</code></td><td>Server</td><td>Server exposes prompt templates</td></tr>
+        <tr><td><code>logging</code></td><td>Server</td><td>Server can send log notifications</td></tr>
+        <tr><td><code>sampling</code></td><td>Client</td><td>Client supports server-initiated LLM calls</td></tr>
+        <tr><td><code>roots</code></td><td>Client</td><td>Client can declare file system roots</td></tr>
+        <tr><td><code>resources.subscribe</code></td><td>Server</td><td>Resources support change subscriptions</td></tr>
+        <tr><td><code>tools.listChanged</code></td><td>Server</td><td>Server will notify when tool list changes</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout amber">
+      <div class="callout-icon">⚠️</div>
+      <div><strong>Best practice:</strong> Always check the negotiated capabilities before calling a method. Attempting to use an undeclared capability (e.g., calling <code>resources/subscribe</code> on a server that didn't declare <code>resources.subscribe</code>) should return a Method Not Found error.</div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- ════════════════════════ SECTION 23 ════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num" style="background:linear-gradient(135deg,#06b6d4,#10b981);">23</div>
+      <h2>Conclusion</h2>
+    </div>
+
+    <blockquote>"MCP is not just a feature — it is the foundation of how AI will connect to the world. Build on it today, and your AI applications are future-proof."</blockquote>
+
+    <p>Model Context Protocol solves one of the most critical infrastructure problems in the AI industry: standardizing how models connect to tools, data, and services. Its clean three-layer architecture, five well-defined primitives, and built-in security model make it both powerful and safe.</p>
+
+    <h3>Key Takeaways</h3>
+    <ul>
+      <li><strong>Solves M×N:</strong> One protocol replaces thousands of custom integrations</li>
+      <li><strong>Clean Architecture:</strong> Host → Client → Server — composable and scalable</li>
+      <li><strong>Five Primitives:</strong> Tools, Resources, Prompts, Sampling, Roots cover every use case</li>
+      <li><strong>Security First:</strong> User consent, least privilege, OAuth 2.1, process isolation</li>
+      <li><strong>Open Ecosystem:</strong> 1000+ community servers, adopted by all major AI providers</li>
+      <li><strong>Agentic Ready:</strong> Sampling enables fully autonomous multi-step AI agents</li>
+    </ul>
+
+    <div class="callout purple">
+      <div class="callout-icon">🔗</div>
+      <div>
+        <strong>Resources:</strong><br>
+        Official site: <code>modelcontextprotocol.io</code><br>
+        GitHub: <code>github.com/modelcontextprotocol</code><br>
+        Specification: <code>spec.modelcontextprotocol.io</code><br>
+        License: MIT (fully open source)
+      </div>
+    </div>
+
+    <div style="margin-top:36px;padding:20px;background:linear-gradient(135deg,#f5f3ff,#ecfdf5);border-radius:12px;border:1px solid #ddd6fe;text-align:center;">
+      <p style="font-size:13px;color:#5b21b6;font-weight:600;margin:0;">Prepared by Syeda Gulzar Bano &nbsp;·&nbsp; MCP Presentation 2026 &nbsp;·&nbsp; April 27, 2026</p>
+    </div>
+  </div>
+
+</div><!-- end container -->
+
+<button class="print-btn no-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
+
+</body>
+</html>
