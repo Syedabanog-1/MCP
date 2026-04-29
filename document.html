@@ -224,8 +224,40 @@
   }
 
   /* ── LIST ── */
-  ul, ol { padding-left: 20px; margin-bottom: 12px; }
   li { margin-bottom: 5px; font-size: 13px; }
+
+  /* ── MOBILE RESPONSIVENESS ── */
+  @media (max-width: 768px) {
+    .container { padding: 24px 20px; }
+    
+    .cover { padding: 60px 24px; min-height: auto; }
+    .cover h1 { font-size: 2.5rem; }
+    .cover-subtitle { font-size: 1rem; margin-bottom: 32px; }
+    .cover-meta { gap: 20px; }
+    
+    .grid-2, .grid-3 { grid-template-columns: 1fr; gap: 16px; }
+    
+    .section-header { gap: 10px; }
+    .section-num { width: 32px; height: 32px; font-size: 12px; }
+    .section h2 { font-size: 1.2rem; }
+    
+    .toc { padding: 24px; }
+    .toc-list li { flex-direction: column; align-items: flex-start; gap: 4px; padding: 10px 0; }
+    .toc-list .toc-sub { font-size: 10px; }
+    
+    .code-block { padding: 14px; font-size: 11px; }
+    
+    table { display: block; overflow-x: auto; white-space: nowrap; }
+    
+    .diagram svg { height: auto; }
+    
+    .print-btn { padding: 10px 20px; font-size: 12px; bottom: 20px; right: 20px; }
+    
+    .callout { padding: 14px; font-size: 13px; }
+    
+    .def-card h4 { font-size: 14px; }
+    .def-card p { font-size: 12px; }
+  }
 </style>
 </head>
 <body>

@@ -237,6 +237,80 @@
     background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.15);
     border-radius:4px; padding:1px 6px; font-size:11px;
   }
+
+  /* ── MOBILE RESPONSIVENESS ── */
+  @media (max-width: 768px) {
+    .slide { padding: 40px 20px; justify-content: flex-start; overflow-y: auto; }
+    .slide > div { width: 100%; }
+    
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.5rem; margin-bottom: 10px; }
+    .subtitle { font-size: 0.95rem; }
+    
+    .grid-2, .grid-3, .grid-4 { 
+      grid-template-columns: 1fr; 
+      gap: 12px; 
+      width: 100%;
+    }
+    
+    [style*="display:flex"][style*="gap:48px"],
+    [style*="display:flex"][style*="gap:40px"],
+    [style*="display:flex"][style*="gap:36px"],
+    [style*="display:flex"][style*="gap:32px"] {
+      flex-direction: column !important;
+      gap: 20px !important;
+    }
+    
+    .nav {
+      bottom: 16px;
+      padding: 8px 16px;
+      width: 90%;
+      max-width: 320px;
+      justify-content: space-between;
+    }
+    .nav button { padding: 8px 16px; font-size: 12px; }
+    #slideNum { font-size: 11px; min-width: 40px; }
+    
+    .key-hint { display: none; }
+    
+    .code-block { padding: 14px; font-size: 11px; }
+    .card { padding: 16px !important; }
+    .blockquote { font-size: 0.95rem; padding: 12px 16px; }
+    
+    .stat-box .num-big { font-size: 2rem; }
+    
+    /* Fix for title slide specific elements */
+    .title-glow { width: 300px; height: 300px; }
+    .pulse-ring { width: 200px !important; height: 200px !important; }
+    
+    /* Timeline adjustments */
+    .timeline { gap: 10px; }
+    .tl-item { padding-bottom: 16px; }
+    
+    /* SVGs container fix */
+    svg { max-height: 40vh; }
+    
+    /* Fix for specific flex containers in slides */
+    [style*="flex:1"], [style*="flex:1.1"], [style*="flex:1.2"] {
+      flex: none !important;
+      width: 100% !important;
+    }
+    
+    /* Reset max-widths for all containers */
+    [style*="max-width:1000px"], [style*="max-width:1100px"], 
+    [style*="max-width:1080px"], [style*="max-width:1050px"],
+    [style*="max-width:1060px"], [style*="max-width:900px"],
+    [style*="max-width:800px"], [style*="max-width:700px"] {
+      max-width: 100% !important;
+    }
+
+    .flow { gap: 4px; }
+    .flow-box { min-width: 100px; padding: 10px; font-size: 11px; }
+    .flow-arrow { font-size: 16px; }
+    
+    .comp-table { font-size: 11px; }
+    .comp-table th, .comp-table td { padding: 8px; }
+  }
 </style>
 </head>
 <body>
